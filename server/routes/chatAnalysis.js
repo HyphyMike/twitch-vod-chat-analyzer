@@ -3,8 +3,10 @@ import { ChatAnalyzer } from '../services/chatAnalyzer.js'
 import { TwitchService } from '../services/twitchService.js'
 
 const router = express.Router()
-const chatAnalyzer = new ChatAnalyzer()
-const twitchService = new TwitchService()
+
+// Lazy-load services to ensure environment variables are loaded
+const getChatAnalyzer = () => new ChatAnalyzer()
+const getTwitchService = () => new TwitchService()
 
 // Analyze VOD chat for interaction peaks
 router.post('/analyze', async (req, res) => {
@@ -14,6 +16,9 @@ router.post('/analyze', async (req, res) => {
     if (!vodId) {
       return res.status(400).json({ error: 'VOD ID is required' })
     }
+    
+    const twitchService = getTwitchService()
+    const chatAnalyzer = getChatAnalyzer()
     
     // Get VOD metadata
     const vodData = await twitchService.getVodById(vodId)
@@ -38,6 +43,7 @@ router.post('/analyze', async (req, res) => {
 router.get('/analysis/:vodId', async (req, res) => {
   try {
     const { vodId } = req.params
+    const chatAnalyzer = getChatAnalyzer()
     const analysis = await chatAnalyzer.getStoredAnalysis(vodId)
     
     if (!analysis) {
@@ -55,6 +61,7 @@ router.get('/analysis/:vodId', async (req, res) => {
 router.post('/analysis/settings', async (req, res) => {
   try {
     const settings = req.body
+    const chatAnalyzer = getChatAnalyzer()
     await chatAnalyzer.updateSettings(settings)
     
     res.json({ message: 'Analysis settings updated successfully' })

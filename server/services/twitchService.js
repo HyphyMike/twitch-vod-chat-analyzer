@@ -8,12 +8,28 @@ export class TwitchService {
     this.clientSecret = process.env.TWITCH_CLIENT_SECRET
     this.accessToken = null
     this.tokenExpiry = null
+    
+    // Debug environment variable loading
+    console.log('🔧 TwitchService initialization:')
+    console.log(`   Client ID: ${this.clientId ? `${this.clientId.substring(0, 8)}...` : 'undefined'}`)
+    console.log(`   Client Secret: ${this.clientSecret ? `${this.clientSecret.substring(0, 8)}...` : 'undefined'}`)
+    
+    // Validate credentials are available
+    if (!this.clientId || !this.clientSecret) {
+      console.warn('⚠️  Twitch API credentials missing! Some features may not work properly.')
+      console.warn('   Please check your .env file contains TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET')
+    }
   }
 
   // Get OAuth access token
   async getAccessToken() {
     if (this.accessToken && this.tokenExpiry > Date.now()) {
       return this.accessToken
+    }
+
+    // Check if credentials are available
+    if (!this.clientId || !this.clientSecret) {
+      throw new Error('Twitch API credentials not configured. Please set TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET in your .env file.')
     }
 
     try {
@@ -28,7 +44,10 @@ export class TwitchService {
       
       return this.accessToken
     } catch (error) {
-      console.error('Error getting Twitch access token:', error)
+      console.error('Error getting Twitch access token:', error.message)
+      if (error.response?.status === 401) {
+        throw new Error('Invalid Twitch API credentials. Please check your TWITCH_CLIENT_ID and TWITCH_CLIENT_SECRET in the .env file.')
+      }
       throw new Error('Failed to authenticate with Twitch API')
     }
   }
