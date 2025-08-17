@@ -11,7 +11,19 @@ const defaultSettings = {
     messageThreshold: 50,
     emoteThreshold: 10,
     peakWindowSize: 30,
-    minimumPeakDistance: 120
+    minimumPeakDistance: 120,
+    // New enhanced settings
+    sensitivityMode: 'balanced',
+    useAdaptiveThresholds: true,
+    multiWindowAnalysis: true,
+    contentAnalysis: true,
+    windowSizes: [10, 30, 60],
+    excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH'],
+    percentileThresholds: {
+      conservative: { message: 90, intensity: 85 },
+      balanced: { message: 75, intensity: 70 },
+      aggressive: { message: 60, intensity: 55 }
+    }
   },
   clipGeneration: {
     duration: 60,
@@ -133,7 +145,14 @@ function validateSettings(settings) {
   
   // Validate sensitivity settings
   if (settings.sensitivity) {
-    const { messageThreshold, emoteThreshold, peakWindowSize, minimumPeakDistance } = settings.sensitivity
+    const { 
+      messageThreshold, 
+      emoteThreshold, 
+      peakWindowSize, 
+      minimumPeakDistance,
+      sensitivityMode,
+      windowSizes
+    } = settings.sensitivity
     
     if (messageThreshold < 1 || messageThreshold > 1000) {
       errors.push('Message threshold must be between 1 and 1000')
@@ -149,6 +168,17 @@ function validateSettings(settings) {
     
     if (minimumPeakDistance < 30 || minimumPeakDistance > 600) {
       errors.push('Minimum peak distance must be between 30 and 600 seconds')
+    }
+    
+    // Validate new enhanced settings
+    if (sensitivityMode && !['conservative', 'balanced', 'aggressive'].includes(sensitivityMode)) {
+      errors.push('Sensitivity mode must be conservative, balanced, or aggressive')
+    }
+    
+    if (windowSizes && Array.isArray(windowSizes)) {
+      if (windowSizes.some(size => size < 5 || size > 300)) {
+        errors.push('All window sizes must be between 5 and 300 seconds')
+      }
     }
   }
   

@@ -6,7 +6,14 @@ function Settings() {
       messageThreshold: 50,
       emoteThreshold: 10,
       peakWindowSize: 30,
-      minimumPeakDistance: 120
+      minimumPeakDistance: 120,
+      // New enhanced settings
+      sensitivityMode: 'balanced',
+      useAdaptiveThresholds: true,
+      multiWindowAnalysis: true,
+      contentAnalysis: true,
+      windowSizes: [10, 30, 60],
+      excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH']
     },
     clipGeneration: {
       duration: 60,
@@ -72,7 +79,13 @@ function Settings() {
           messageThreshold: 50,
           emoteThreshold: 10,
           peakWindowSize: 30,
-          minimumPeakDistance: 120
+          minimumPeakDistance: 120,
+          sensitivityMode: 'balanced',
+          useAdaptiveThresholds: true,
+          multiWindowAnalysis: true,
+          contentAnalysis: true,
+          windowSizes: [10, 30, 60],
+          excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH']
         },
         clipGeneration: {
           duration: 60,
@@ -182,6 +195,86 @@ function Settings() {
               <div style={{ fontSize: '0.9rem', color: '#adadb8', marginTop: '0.25rem' }}>
                 Minimum time between detected peaks to avoid duplicates
               </div>
+            </div>
+
+            {/* Enhanced Analysis Settings */}
+            <div style={{ marginTop: '1.5rem', marginBottom: '1rem', padding: '1rem', backgroundColor: '#1a1a1a', borderRadius: '8px', border: '1px solid #464649' }}>
+              <h4 style={{ marginBottom: '1rem', color: '#ffb800' }}>🚀 Enhanced Analysis Settings</h4>
+              
+              <div className="setting-item" style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                  Sensitivity Mode
+                </label>
+                <select
+                  className="input"
+                  value={settings.sensitivity.sensitivityMode}
+                  onChange={(e) => updateSetting('sensitivity', 'sensitivityMode', e.target.value)}
+                  style={{ width: '200px' }}
+                >
+                  <option value="conservative">Conservative - Fewer, high-confidence peaks</option>
+                  <option value="balanced">Balanced - Good mix of accuracy and detection</option>
+                  <option value="aggressive">Aggressive - More peaks, may include false positives</option>
+                </select>
+                <div style={{ fontSize: '0.9rem', color: '#adadb8', marginTop: '0.25rem' }}>
+                  Controls how sensitive the peak detection algorithm is
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '2rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={settings.sensitivity.useAdaptiveThresholds}
+                    onChange={(e) => updateSetting('sensitivity', 'useAdaptiveThresholds', e.target.checked)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  <span>Use Adaptive Thresholds</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={settings.sensitivity.multiWindowAnalysis}
+                    onChange={(e) => updateSetting('sensitivity', 'multiWindowAnalysis', e.target.checked)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  <span>Multi-Window Analysis</span>
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={settings.sensitivity.contentAnalysis}
+                    onChange={(e) => updateSetting('sensitivity', 'contentAnalysis', e.target.checked)}
+                    style={{ marginRight: '0.5rem' }}
+                  />
+                  <span>Content Analysis</span>
+                </label>
+              </div>
+
+              <div style={{ fontSize: '0.9rem', color: '#adadb8', marginBottom: '1rem' }}>
+                <div>• <strong>Adaptive Thresholds:</strong> Automatically adjust detection sensitivity based on stream size and activity</div>
+                <div>• <strong>Multi-Window Analysis:</strong> Use multiple time windows (10s, 30s, 60s) for better detection</div>
+                <div>• <strong>Content Analysis:</strong> Analyze message content for excitement keywords, caps, and spam detection</div>
+              </div>
+
+              {settings.sensitivity.contentAnalysis && (
+                <div className="setting-item" style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Excitement Keywords
+                  </label>
+                  <textarea
+                    className="input"
+                    value={settings.sensitivity.excitementKeywords.join(', ')}
+                    onChange={(e) => updateSetting('sensitivity', 'excitementKeywords', e.target.value.split(',').map(k => k.trim()).filter(k => k))}
+                    placeholder="Enter keywords separated by commas"
+                    style={{ width: '100%', height: '60px', resize: 'vertical' }}
+                  />
+                  <div style={{ fontSize: '0.9rem', color: '#adadb8', marginTop: '0.25rem' }}>
+                    Keywords that indicate excitement in chat (e.g., POGGERS, KEKW, WOW)
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
