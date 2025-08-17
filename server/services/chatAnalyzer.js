@@ -35,6 +35,7 @@ export class ChatAnalyzer {
       contentAnalysis: true,
       windowSizes: [10, 30, 60], // Multiple window sizes in seconds
       excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH'],
+      disallowedTerms: ['!drop', '!giveaway', 'bot', 'spam', 'scam', 'fake', 'subscribe to me', 'follow me', 'check out my', 'view my channel'],
       percentileThresholds: {
         conservative: { message: 90, intensity: 85 },
         balanced: { message: 75, intensity: 70 },
@@ -94,8 +95,9 @@ export class ChatAnalyzer {
 
   // Analyze message content for excitement indicators
   analyzeMessageContent(messages) {
-    const { excitementKeywords } = this.settings
+    const { excitementKeywords, disallowedTerms = [] } = this.settings
     let excitementScore = 0
+    let disallowedScore = 0
     let capsCount = 0
     let totalChars = 0
     let spamMessages = 0
@@ -110,6 +112,14 @@ export class ChatAnalyzer {
       excitementKeywords.forEach(keyword => {
         if (upperContent.includes(keyword)) {
           excitementScore += 1
+        }
+      })
+      
+      // Check for disallowed terms (case-insensitive)
+      const lowerContent = content.toLowerCase()
+      disallowedTerms.forEach(term => {
+        if (lowerContent.includes(term.toLowerCase())) {
+          disallowedScore += 1
         }
       })
       
@@ -128,6 +138,7 @@ export class ChatAnalyzer {
     const messageCount = messages.length
     return {
       excitementScore: excitementScore / Math.max(messageCount, 1),
+      disallowedScore: disallowedScore / Math.max(messageCount, 1),
       capsRatio: capsCount / Math.max(totalChars, 1),
       spamRatio: spamMessages / Math.max(messageCount, 1),
       avgMessageLength: totalChars / Math.max(messageCount, 1)
@@ -157,7 +168,7 @@ export class ChatAnalyzer {
         // Content analysis for this window
         const contentAnalysis = this.settings.contentAnalysis ? 
           this.analyzeMessageContent(windowMessages) : 
-          { excitementScore: 0, capsRatio: 0, spamRatio: 0, avgMessageLength: 0 }
+          { excitementScore: 0, disallowedScore: 0, capsRatio: 0, spamRatio: 0, avgMessageLength: 0 }
         
         timeline.push({
           timestamp: time,
@@ -390,14 +401,15 @@ export class ChatAnalyzer {
   calculateContentScore(point) {
     if (!point.contentAnalysis) return 0
     
-    const { excitementScore, capsRatio, spamRatio } = point.contentAnalysis
+    const { excitementScore, disallowedScore = 0, capsRatio, spamRatio } = point.contentAnalysis
     
     // Weight different factors
     const excitementWeight = excitementScore * 2 // High weight for excitement keywords
+    const disallowedPenalty = disallowedScore * -2 // Penalty for disallowed terms
     const capsWeight = Math.min(capsRatio * 3, 1) // Caps indicate excitement but cap at 1
     const spamPenalty = spamRatio * -1 // Penalty for spam
     
-    return Math.max(0, excitementWeight + capsWeight + spamPenalty)
+    return Math.max(0, excitementWeight + disallowedPenalty + capsWeight + spamPenalty)
   }
 
   // Calculate dynamic minimum distance between peaks
@@ -624,13 +636,14 @@ export class ChatAnalyzer {
 
   // Calculate overall excitement level
   calculateOverallExcitement(contentAnalysis) {
-    const { excitementScore, capsRatio, spamRatio } = contentAnalysis
+    const { excitementScore, disallowedScore = 0, capsRatio, spamRatio } = contentAnalysis
     
     const baseExcitement = excitementScore * 10 // Scale up
+    const disallowedPenalty = disallowedScore * -8 // Strong penalty for disallowed terms
     const capsBonus = Math.min(capsRatio * 5, 2) // Cap bonus
     const spamPenalty = spamRatio * -3
     
-    return Math.max(0, Math.min(10, baseExcitement + capsBonus + spamPenalty))
+    return Math.max(0, Math.min(10, baseExcitement + disallowedPenalty + capsBonus + spamPenalty))
   }
 
   // Calculate engagement quality score
@@ -638,9 +651,10 @@ export class ChatAnalyzer {
     const diversityScore = basicStats.uniqueUsers / Math.max(basicStats.totalMessages, 1)
     const emoteScore = Math.min(basicStats.emoteRatio * 5, 2)
     const excitementScore = contentAnalysis.excitementScore * 3
+    const disallowedPenalty = (contentAnalysis.disallowedScore || 0) * -3 // Penalty for disallowed terms
     const spamPenalty = contentAnalysis.spamRatio * -2
     
-    return Math.max(0, Math.min(10, (diversityScore * 10 + emoteScore + excitementScore + spamPenalty) / 2))
+    return Math.max(0, Math.min(10, (diversityScore * 10 + emoteScore + excitementScore + disallowedPenalty + spamPenalty) / 2))
   }
 
   // Helper method to calculate variance

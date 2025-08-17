@@ -13,7 +13,8 @@ function Settings() {
       multiWindowAnalysis: true,
       contentAnalysis: true,
       windowSizes: [10, 30, 60],
-      excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH']
+      excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH'],
+      disallowedTerms: ['!drop', '!giveaway', 'bot', 'spam', 'scam', 'fake', 'subscribe to me', 'follow me', 'check out my', 'view my channel']
     },
     clipGeneration: {
       duration: 60,
@@ -85,7 +86,8 @@ function Settings() {
           multiWindowAnalysis: true,
           contentAnalysis: true,
           windowSizes: [10, 30, 60],
-          excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH']
+          excitementKeywords: ['POGGERS', 'KEKW', 'LUL', 'OMEGALUL', 'WOW', 'AMAZING', 'INSANE', 'HOLY', 'POG', 'HYPE', '5Head', 'EZ', 'CLUTCH'],
+          disallowedTerms: ['!drop', '!giveaway', 'bot', 'spam', 'scam', 'fake', 'subscribe to me', 'follow me', 'check out my', 'view my channel']
         },
         clipGeneration: {
           duration: 60,
@@ -272,6 +274,24 @@ function Settings() {
                   />
                   <div style={{ fontSize: '0.9rem', color: '#adadb8', marginTop: '0.25rem' }}>
                     Keywords that indicate excitement in chat (e.g., POGGERS, KEKW, WOW)
+                  </div>
+                </div>
+              )}
+
+              {settings.sensitivity.contentAnalysis && (
+                <div className="setting-item" style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 'bold' }}>
+                    Disallowed Terms
+                  </label>
+                  <textarea
+                    className="input"
+                    value={(settings.sensitivity.disallowedTerms || []).join(', ')}
+                    onChange={(e) => updateSetting('sensitivity', 'disallowedTerms', e.target.value.split(',').map(k => k.trim()).filter(k => k))}
+                    placeholder="Enter terms to filter out, separated by commas"
+                    style={{ width: '100%', height: '60px', resize: 'vertical' }}
+                  />
+                  <div style={{ fontSize: '0.9rem', color: '#adadb8', marginTop: '0.25rem' }}>
+                    Terms that reduce excitement scoring and help filter spam/toxic content
                   </div>
                 </div>
               )}
