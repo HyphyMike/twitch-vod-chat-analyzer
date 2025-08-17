@@ -2,12 +2,17 @@ import express from 'express'
 import { TwitchService } from '../services/twitchService.js'
 
 const router = express.Router()
-const twitchService = new TwitchService()
+
+// Lazy-load TwitchService to ensure environment variables are loaded
+const getTwitchService = () => {
+  return new TwitchService()
+}
 
 // Get VOD by ID
 router.get('/vod/:vodId', async (req, res) => {
   try {
     const { vodId } = req.params
+    const twitchService = getTwitchService()
     const vodData = await twitchService.getVodById(vodId)
     
     if (!vodData) {
@@ -30,6 +35,7 @@ router.get('/search', async (req, res) => {
       return res.status(400).json({ error: 'Search query is required' })
     }
     
+    const twitchService = getTwitchService()
     const searchResults = await twitchService.searchVods(query)
     res.json(searchResults)
   } catch (error) {
@@ -42,6 +48,7 @@ router.get('/search', async (req, res) => {
 router.get('/vod/:vodId/chat', async (req, res) => {
   try {
     const { vodId } = req.params
+    const twitchService = getTwitchService()
     const chatData = await twitchService.getVodChatLogs(vodId)
     
     res.json(chatData)
